@@ -1,12 +1,6 @@
-import { type ClassValue, clsx } from 'clsx';
-
-export function cn(...inputs: ClassValue[]) {
+export function cn(...inputs: (string | boolean | undefined | null)[]) {
     return inputs.filter(Boolean).join(' ');
 }
-
-// We use a simple cn utility instead of tailwind-merge to avoid extra dependency
-// clsx is imported as a lightweight utility
-export { clsx };
 
 export function formatDate(date: string | Date): string {
     return new Date(date).toLocaleDateString('en-IN', {
