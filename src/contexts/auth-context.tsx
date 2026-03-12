@@ -1,6 +1,6 @@
 'use client';
 
-import { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
+import { createContext, useContext, useEffect, useState, useCallback, ReactNode, useMemo } from 'react';
 import { createClient } from '@/lib/supabase/client';
 import type { User } from '@supabase/supabase-js';
 import type { Profile } from '@/lib/database.types';
@@ -29,20 +29,31 @@ const AuthContext = createContext<AuthContextType>({
     canUpload: false,
 });
 
+// Create a single stable Supabase client instance
+const supabase = createClient();
+
 export function AuthProvider({ children }: { children: ReactNode }) {
     const [user, setUser] = useState<User | null>(null);
     const [profile, setProfile] = useState<Profile | null>(null);
     const [loading, setLoading] = useState(true);
-    const supabase = createClient();
 
     const fetchProfile = useCallback(async (userId: string) => {
-        const { data } = await supabase
-            .from('profiles')
-            .select('*')
-            .eq('id', userId)
-            .single();
-        setProfile(data);
-    }, [supabase]);
+        try {
+            const { data, error } = await supabase
+                .from('profiles')
+                .select('*')
+                .eq('id', userId)
+                .single();
+            if (error) {
+                console.warn('Profile fetch failed:', error.message);
+                setProfile(null);
+            } else {
+                setProfile(data);
+            }
+        } catch {
+            setProfile(null);
+        }
+    }, []);
 
     const refreshProfile = useCallback(async () => {
         if (user) {
@@ -51,19 +62,27 @@ export function AuthProvider({ children }: { children: ReactNode }) {
     }, [user, fetchProfile]);
 
     useEffect(() => {
+        let mounted = true;
+
         const getUser = async () => {
-            const { data: { session } } = await supabase.auth.getSession();
-            setUser(session?.user ?? null);
-            if (session?.user) {
-                await fetchProfile(session.user.id);
+            try {
+                const { data: { session } } = await supabase.auth.getSession();
+                if (!mounted) return;
+                setUser(session?.user ?? null);
+                if (session?.user) {
+                    await fetchProfile(session.user.id);
+                }
+            } catch {
+                // Auth not available
             }
-            setLoading(false);
+            if (mounted) setLoading(false);
         };
 
         getUser();
 
         const { data: { subscription } } = supabase.auth.onAuthStateChange(
-            async (event, session) => {
+            async (_event, session) => {
+                if (!mounted) return;
                 setUser(session?.user ?? null);
                 if (session?.user) {
                     await fetchProfile(session.user.id);
@@ -74,25 +93,32 @@ export function AuthProvider({ children }: { children: ReactNode }) {
             }
         );
 
-        return () => subscription.unsubscribe();
-    }, [supabase, fetchProfile]);
+        return () => {
+            mounted = false;
+            subscription.unsubscribe();
+        };
+    }, [fetchProfile]);
 
-    const signOut = async () => {
+    const signOut = useCallback(async () => {
         await supabase.auth.signOut();
         setUser(null);
         setProfile(null);
-    };
+    }, []);
 
-    const isAdmin = profile?.role === 'super_admin' || profile?.role === 'admin';
-    const isReviewer = isAdmin || profile?.role === 'reviewer';
-    const isContributor = profile?.role === 'contributor';
-    const canUpload = !!profile && profile.status === 'active' && profile.onboarding_completed;
+    const value = useMemo(() => {
+        const isAdmin = profile?.role === 'super_admin' || profile?.role === 'admin';
+        const isReviewer = isAdmin || profile?.role === 'reviewer';
+        const isContributor = profile?.role === 'contributor';
+        const canUpload = !!profile && profile.status === 'active' && profile.onboarding_completed;
 
-    return (
-        <AuthContext.Provider value={{
+        return {
             user, profile, loading, signOut, refreshProfile,
             isAdmin, isReviewer, isContributor, canUpload,
-        }}>
+        };
+    }, [user, profile, loading, signOut, refreshProfile]);
+
+    return (
+        <AuthContext.Provider value={value}>
             {children}
         </AuthContext.Provider>
     );
