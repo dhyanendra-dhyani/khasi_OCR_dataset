@@ -66,6 +66,13 @@ export function isValidFileType(file: File, allowed: string[]): boolean {
 
 export function getCategoryLabel(value: string): string {
     const map: Record<string, string> = {
+        textbook_worksheet: 'Textbook / Worksheet',
+        notice_circular: 'Notice / Circular / Pamphlet',
+        newspaper_magazine: 'Newspaper / Magazine',
+        form_register: 'Form / Register',
+        archive_old: 'Archive / Old / Photocopy',
+        other_printed: 'Other Printed',
+        // Legacy category support
         textbook_scan: 'Textbook Scan',
         notice_scan: 'Notice / Circular',
         pamphlet_scan: 'Pamphlet / Leaflet',
@@ -80,6 +87,34 @@ export function getCategoryLabel(value: string): string {
         other_printed_scan: 'Other Printed',
     };
     return map[value] || value;
+}
+
+export async function compressImage(file: File, maxWidth: number = 2400, quality: number = 0.85): Promise<File> {
+    return new Promise((resolve) => {
+        const img = new Image();
+        img.onload = () => {
+            let { width, height } = img;
+            if (width <= maxWidth) { resolve(file); URL.revokeObjectURL(img.src); return; }
+            const ratio = maxWidth / width;
+            width = maxWidth;
+            height = Math.round(height * ratio);
+            const canvas = document.createElement('canvas');
+            canvas.width = width;
+            canvas.height = height;
+            const ctx = canvas.getContext('2d')!;
+            ctx.drawImage(img, 0, 0, width, height);
+            canvas.toBlob((blob) => {
+                if (blob && blob.size < file.size) {
+                    resolve(new File([blob], file.name, { type: 'image/jpeg' }));
+                } else {
+                    resolve(file);
+                }
+                URL.revokeObjectURL(img.src);
+            }, 'image/jpeg', quality);
+        };
+        img.onerror = () => { resolve(file); URL.revokeObjectURL(img.src); };
+        img.src = URL.createObjectURL(file);
+    });
 }
 
 export function getStatusColor(status: string): string {

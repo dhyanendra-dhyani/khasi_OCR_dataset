@@ -46,6 +46,12 @@ export const profileCompletionSchema = z.object({
     preferred_language: z.string().default('English'),
 });
 
+// Simplified contributor upload schema - only capture type required
+export const uploadSchema = z.object({
+    capture_type: z.string().min(1, 'Please select how you captured this image'),
+});
+
+// Full metadata schema - used by reviewers/admins
 export const metadataSchema = z.object({
     document_title: z.string().min(1, 'Document title is required').max(200),
     source_type: z.string().min(1, 'Source type is required'),
@@ -73,4 +79,5 @@ export type LoginInput = z.infer<typeof loginSchema>;
 export type ForgotPasswordInput = z.infer<typeof forgotPasswordSchema>;
 export type ResetPasswordInput = z.infer<typeof resetPasswordSchema>;
 export type ProfileCompletionInput = z.infer<typeof profileCompletionSchema>;
+export type UploadInput = z.infer<typeof uploadSchema>;
 export type MetadataInput = z.infer<typeof metadataSchema>;

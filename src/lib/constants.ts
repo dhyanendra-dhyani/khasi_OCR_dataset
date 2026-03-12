@@ -3,20 +3,23 @@
 // ============================================================
 
 export const DATASET_CATEGORIES = [
-    { value: 'textbook_scan', label: 'Textbook Scan', description: 'Pages from Khasi language textbooks' },
-    { value: 'notice_scan', label: 'Notice / Circular', description: 'Official notices, circulars, memos' },
-    { value: 'pamphlet_scan', label: 'Pamphlet / Leaflet', description: 'Pamphlets, brochures, flyers' },
-    { value: 'newspaper_scan', label: 'Newspaper / Magazine', description: 'Khasi newspaper clippings or magazine pages' },
-    { value: 'form_scan', label: 'Form / Application', description: 'Printed forms, application papers' },
-    { value: 'register_scan', label: 'Register / Ledger', description: 'Institutional registers, attendance sheets' },
-    { value: 'archive_scan', label: 'Archive / Old Document', description: 'Historical or old archived documents' },
-    { value: 'photocopy_scan', label: 'Photocopy', description: 'Photocopied printed documents' },
-    { value: 'worksheet_scan', label: 'Worksheet / Exercise', description: 'School worksheets, exam papers' },
-    { value: 'church_bulletin_scan', label: 'Church Bulletin', description: 'Church bulletins, prayer sheets, hymn sheets' },
-    { value: 'community_document_scan', label: 'Community Document', description: 'Dorbar documents, community records' },
-    { value: 'other_printed_scan', label: 'Other Printed', description: 'Any other printed Khasi document' },
+    { value: 'textbook_worksheet', label: 'Textbook / Worksheet', description: 'Pages from textbooks, school worksheets, exam papers' },
+    { value: 'notice_circular', label: 'Notice / Circular / Pamphlet', description: 'Official notices, circulars, pamphlets, leaflets' },
+    { value: 'newspaper_magazine', label: 'Newspaper / Magazine', description: 'Newspaper clippings, magazine pages' },
+    { value: 'form_register', label: 'Form / Register', description: 'Printed forms, registers, ledgers, applications' },
+    { value: 'archive_old', label: 'Archive / Old / Photocopy', description: 'Historical documents, old archives, photocopies' },
+    { value: 'other_printed', label: 'Other Printed', description: 'Any other printed Khasi document' },
 ] as const;
 
+export const CAPTURE_TYPES = [
+    { value: 'flatbed_scan', label: 'Flatbed Scanner' },
+    { value: 'mobile_photo', label: 'Mobile Phone Photo' },
+    { value: 'photocopy_scan', label: 'Photocopy Scan' },
+    { value: 'pdf_render', label: 'PDF / Screenshot Render' },
+    { value: 'other', label: 'Other' },
+] as const;
+
+// Reviewer/admin-only constants
 export const SOURCE_TYPES = [
     { value: 'textbook', label: 'Textbook' },
     { value: 'notice', label: 'Notice' },
@@ -29,14 +32,6 @@ export const SOURCE_TYPES = [
     { value: 'worksheet', label: 'Worksheet' },
     { value: 'church_bulletin', label: 'Church Bulletin' },
     { value: 'community_document', label: 'Community Document' },
-    { value: 'other', label: 'Other' },
-] as const;
-
-export const CAPTURE_TYPES = [
-    { value: 'flatbed_scan', label: 'Flatbed Scanner' },
-    { value: 'mobile_photo', label: 'Mobile Phone Photo' },
-    { value: 'photocopy_scan', label: 'Photocopy Scan' },
-    { value: 'pdf_render', label: 'PDF / Screenshot Render' },
     { value: 'other', label: 'Other' },
 ] as const;
 
@@ -89,6 +84,8 @@ export const ALLOWED_FILE_TYPES = ['image/jpeg', 'image/png', 'image/webp'];
 export const MAX_FILE_SIZE = 20 * 1024 * 1024; // 20MB
 export const MIN_IMAGE_WIDTH = 300;
 export const MIN_IMAGE_HEIGHT = 300;
+export const COMPRESSION_MAX_WIDTH = 2400;
+export const COMPRESSION_QUALITY = 0.85;
 
 export const REJECTION_REASONS = [
     'Image too blurry to read',
